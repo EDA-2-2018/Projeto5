@@ -9,10 +9,10 @@ typedef struct Arv {
 }Arv;
 
 Arv* init(void);
-Arv* searchValue(Arv* r, int v);
-Arv* insere(Arv* a, int v);
-Arv* loadTreeFromFile(const char *nome_arquivo);
-int isFullTree( Arv* root); 
+Arv* searchValue(Arv* root, int num);
+Arv* insert(Arv* a, int v);
+Arv* loadTreeFromFile(const char *file_name);
+int isFullTree(Arv* root); 
 int height(Arv *tree);
 Arv* removeValue(Arv* r, int v);
 void printInOrder(Arv* a);
@@ -23,6 +23,7 @@ void print(Arv *root);
 int getLevel(Arv *node, int info, int level); 
 int getParent(Arv *root, int value, int treeHeight);
 int getBrother(Arv *root, int value, int treeHeight);
+bool isBalanced(Arv *tree);
 
 int main() {
     Arv *raiz = init();
@@ -49,14 +50,15 @@ int main() {
             break;
 
         if(opcao == 1)
-            raiz = loadTreeFromFile("./BSTs/bst8.txt");        
+            raiz = loadTreeFromFile("./BSTs/bst1.txt");        
 
         if(opcao == 2){
-            system("clear");
             if(!raiz)
-                printf("Arvore vazia ou nao carregada!\n");
-            else
+                printf("\nArvore vazia ou nao carregada!\n");
+            else {
+                system("clear");
                 print(raiz);
+            }
 
             getchar();
         }
@@ -73,14 +75,13 @@ int main() {
 
 
         if(opcao == 4) {
-            system("clear");
 
             if(!raiz)
-                printf("Arvore vazia ou nao carregada!\n");
+                printf("\nArvore vazia ou nao carregada!\n");
             
             else {
                 int search_value;
-                printf("Digite o valor de pesquisa: ");
+                printf("\nDigite o valor de pesquisa: ");
                 scanf("%d", &search_value);
                 getchar();
             
@@ -108,7 +109,7 @@ int main() {
         if(opcao == 5) {
             
             if(!raiz)
-                printf("Arvore vazia ou nao carregada!\n");
+                printf("\nArvore vazia ou nao carregada!\n");
             else
                 printf("\nAltura = %d\n", height(raiz));
             
@@ -116,12 +117,11 @@ int main() {
         }
 
         if(opcao == 6) {
-            system("clear");
             if(!raiz)
-                printf("Arvore vazia ou nao carregada!\n");
+                printf("\nArvore vazia ou nao carregada!\n");
             else {
                 int value;
-                printf("Digite o valor que deseja remover: ");
+                printf("\nDigite o valor que deseja remover: ");
                 scanf("%d", &value);
                 getchar();
     
@@ -136,38 +136,46 @@ int main() {
         }
 
         if(opcao == 7) {
-            system("clear"); 
             if(!raiz) 
-                printf("Arvore vazia ou nao carregada!\n");
-            else 
+                printf("\nArvore vazia ou nao carregada!\n");
+            else { 
+                printf("\n");
                 printInOrder(raiz);
+            }
             getchar();
         }
 
         if(opcao == 8) {
-            system("clear"); 
+
             if(!raiz) 
                 printf("Arvore vazia ou nao carregada!\n");
-            else 
+            else { 
+                printf("\n");
                 printPreOrder(raiz);
+            }
             getchar();
         }
     
         if(opcao == 9) {
-            system("clear"); 
             if(!raiz) 
                 printf("Arvore vazia ou nao carregada!\n");
-            else 
+            else {
+                printf("\n");
                 printPosOrder(raiz);
+            }
             getchar();
         }
 
         if(opcao == 10) {
-            system("clear"); 
+            // system("clear"); 
             if(!raiz) 
-                printf("Arvore vazia ou nao carregada!\n");
+                printf("\nArvore vazia ou nao carregada!\n");
             else 
-                printPosOrder(raiz);
+                if(isBalanced(raiz))
+                    printf("\nArvore Balanceada!\n");
+                else
+                    printf("\nArvore nao balaceada!\n");
+
             getchar();
         }
 
@@ -205,43 +213,43 @@ void printPosOrder (Arv* a) {
     }
 }
 
-Arv* searchValue (Arv* r, int v) {
-    if (r == NULL) 
+Arv* searchValue (Arv* root, int num) {
+    if (root == NULL) 
         return NULL;    
     
-    else if(r->info > v) 
-            return searchValue(r->esq, v);
+    else if(root->info > num) 
+            return searchValue(root->esq, num);
     else if 
-        (r->info < v) 
-            return searchValue(r->dir, v);
+        (root->info < num) 
+            return searchValue(root->dir, num);
     else 
-        return r;
+        return root;
 }
 
-Arv* insere(Arv* a, int v) {
+Arv* insert(Arv* a, int v) {
     if (a==NULL) {
         a = (Arv*)malloc(sizeof(Arv));
         a->info = v;
         a->esq = a->dir = NULL;
     }
     else if(v < a->info)    
-        a->esq = insere(a->esq,v);  
+        a->esq = insert(a->esq,v);  
     else /* v < a->info */
-        a->dir = insere(a->dir,v);
+        a->dir = insert(a->dir,v);
     
     return a;
 }
 
 
-Arv* loadTreeFromFile(const char *nome_arquivo) {
+Arv* loadTreeFromFile(const char *file_name) {
     Arv *arr = init();
     int num;
     FILE *arquivo;
   
-    arquivo = fopen(nome_arquivo, "r");
+    arquivo = fopen(file_name, "r");
   
     while((fscanf(arquivo, "%d", &num))!=EOF) 
-        arr = insere(arr, num);
+        arr = insert(arr, num);
 
     fclose(arquivo); 
     return arr;
@@ -400,3 +408,21 @@ int getBrother(Arv *root, int value, int treeHeight) {
         getBrother(root->dir, value, treeHeight);
     }
 }
+
+bool isBalanced(Arv *tree)  { 
+   int lh; 
+   int rh;   
+  
+   if(tree == NULL) 
+    return true;  
+  
+   lh = height(tree->esq); 
+   rh = height(tree->dir); 
+  
+   if( abs(lh-rh) <= 1 && 
+       isBalanced(tree->esq) && isBalanced(tree->dir)) 
+            return true; 
+  
+   return false; 
+} 
+  
