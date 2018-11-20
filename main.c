@@ -73,20 +73,24 @@ int main(){
 
         if(opcao == 1){
             system("clear");
-            char File_name[MAX_FILE], Nome_escolhido[MAX_FILE];
 
-            printf("Lista de arquivos:\n\tbst1.txt\n\tbst2.txt\n\tbst3.txt\n\tbst4.txt\n\tbst5.txt\n\tbst6.txt\n\tbst7.txt\n\tbst8.txt");
-            printf("\n\nDigite o nome de um dos arquivos acima: ");
-            //File_name = "./BSTs/";
-            strcpy(File_name , "./BSTs/");
-            scanf("%s\n", Nome_escolhido);
+            char load_file[17], file[10];
+            int num_file;
+            printf("Lista de arquivos:\n\t1) bst1.txt\n\t2) bst2.txt\n\t3) bst3.txt\n\t4) bst4.txt\n\t5) bst5.txt\n\t6) bst6.txt\n\t7) bst7.txt\n\t8) bst8.txt");
+
+            printf("\n\nDigite o numero correspondente para carregar o arquivo: ");
+            
+            scanf("%d", &num_file);
             getchar();
 
-            strncat(File_name, Nome_escolhido, MAX_FILE);
+            sprintf(load_file,"./BSTs/bst%d.txt",num_file);
 
+            raiz = loadTreeFromFile(load_file);
 
-            raiz = loadTreeFromFile(File_name);
+            sprintf(file, "bst%d.txt", num_file);
 
+            printf("\nArquivo %s carregado...\n", file);
+            getchar();
         }
         if(opcao == 2){
             if(!raiz)
@@ -226,10 +230,15 @@ int main(){
 Arv* loadTreeFromFile(const char *file_name) { //[1]
     Arv *arr = init();
     int num;
-    FILE *arquivo;
+    FILE *arquivo = NULL;
 
     arquivo = fopen(file_name, "r");
 
+    if (!arquivo) {
+        printf("Falha ao carregar arquivo!\n");        
+        exit(1);
+    }
+    
     while((fscanf(arquivo, "%d", &num))!=EOF)
         arr = insert(arr, num);
 
