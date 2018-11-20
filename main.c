@@ -9,7 +9,7 @@ typedef struct Arv {
 }Arv;
 
 Arv* init(void);
-Arv* searchValue(Arv* root, int num);
+Arv* searchValue(Arv* tree, int num);
 Arv* insert(Arv* a, int v);
 Arv* loadTreeFromFile(const char *file_name);
 int isFullTree(Arv* root); 
@@ -64,7 +64,7 @@ int main() {
         }
         if(opcao == 3) {
             if(!raiz)
-                printf("Arvore vazia ou nao carregada!\n");
+                printf("\nArvore vazia ou nao carregada!\n");
             else
                 if(isFullTree(raiz))
                     printf("\nArvore cheia!\n");
@@ -148,7 +148,7 @@ int main() {
         if(opcao == 8) {
 
             if(!raiz) 
-                printf("Arvore vazia ou nao carregada!\n");
+                printf("\nArvore vazia ou nao carregada!\n");
             else { 
                 printf("\n");
                 printPreOrder(raiz);
@@ -158,7 +158,7 @@ int main() {
     
         if(opcao == 9) {
             if(!raiz) 
-                printf("Arvore vazia ou nao carregada!\n");
+                printf("\nArvore vazia ou nao carregada!\n");
             else {
                 printf("\n");
                 printPosOrder(raiz);
@@ -213,17 +213,17 @@ void printPosOrder (Arv* a) {
     }
 }
 
-Arv* searchValue (Arv* root, int num) {
-    if (root == NULL) 
+Arv* searchValue (Arv* tree, int num) {
+    if (tree == NULL) 
         return NULL;    
     
-    else if(root->info > num) 
-            return searchValue(root->esq, num);
+    else if(tree->info > num) 
+            return searchValue(tree->esq, num);
     else if 
-        (root->info < num) 
-            return searchValue(root->dir, num);
+        (tree->info < num) 
+            return searchValue(tree->dir, num);
     else 
-        return root;
+        return tree;
 }
 
 Arv* insert(Arv* a, int v) {
