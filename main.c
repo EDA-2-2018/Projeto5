@@ -3,7 +3,12 @@
 #include <string.h>
 #include <stdbool.h>
 
+/*
+ * CONSTANTES
+ */
 #define MAX_FILE 40
+#define MAX_TAM (1<<20)
+#define ALTURA_MAX 1000
 
 /*
  * STRUCTS
@@ -13,6 +18,19 @@ typedef struct Arv {
     struct Arv* esq;
     struct Arv* dir;
 }Arv;
+
+typedef struct Node { //Árvore auxiliar com os dados necessário para a showTree
+    struct Node *esq, *dir;
+    int info, galho, altura, tipo;
+    char descricao[11];
+}Node;
+
+/*
+ * VARIÁVEIS GLOBAIS
+ */
+Arv *Root = NULL;
+int espaco = 3, imprimeProx;
+int esq[ALTURA_MAX], dir[ALTURA_MAX];
 
 /*
  * ASSINATURA DAS FUNÇÕES
@@ -29,198 +47,191 @@ void printPreOrder(Arv* a);                    //[8]
 void printPosOrder(Arv* a);                    //[9]
 void balanceTree(Arv *root);                   //[10]
 //OUTRAS FUNÇÕES
-/*int esta_balanceada(No *raiz);*/
-/*No* cria_no(int num);*/
-/*void insere_no(No *no, int num);*/
 Arv* init(void);
+void liberaArv(Arv *no);
 Arv* insert(Arv* a, int v);
-//void printTree(Arv *root, int space);
-//void print(Arv *root);
 int getLevel(Arv *node, int info, int level);
 int getParent(Arv *root, int value, int treeHeight);
 int getBrother(Arv *root, int value, int treeHeight);
 bool isBalanced(Arv *tree);
-int readTree(Arv *presentNode,int max,int row,int col,int a[176][480]);
-int printTree(Arv *presentNode);
-
+int readTree(Arv *presentNode,int max,int row,int col,int a[44][120]);
+int menor_node(int x, int y);
+int maior_node(int x, int y);
+Node *criaNodeTree(Arv *n);
+void liberaNodeTree(Node *no);
+void preenche_galho(Node *no);
+void imprimeLevel(Node *no, int x, int level);
+void menorEsq(Node *no, int x, int y);
+void maiorDir(Node *no, int x, int y);
 
 /*
  * FUNÇÃO MAIN
  */
 int main(){
-    Arv *raiz = init();
-    while(1) {
-        system("clear");
-        printf("\n\n 1 - loadTreeFromFile\n");
-        printf(" 2 - showTree\n");
-        printf(" 3 - isFull\n");
-        printf(" 4 - searchValue\n");
-        printf(" 5 - getHeight\n");
-        printf(" 6 - removeValue\n");
-        printf(" 7 - printInOrder\n");
-        printf(" 8 - printPreOrder\n");
-        printf(" 9 - printPostOrder\n");
-        printf("10 - balanceTree\n");
-        printf(" 0 - SAIR\n\n");
+  Arv *raiz = init();
+  while(1){
+      system("clear");
+      printf("\n\n\n\n\t**********MENU**********\n\n\t 1 - loadTreeFromFile\n");
+      printf("\t 2 - showTree\n");
+      printf("\t 3 - isFull\n");
+      printf("\t 4 - searchValue\n");
+      printf("\t 5 - getHeight\n");
+      printf("\t 6 - removeValue\n");
+      printf("\t 7 - printInOrder\n");
+      printf("\t 8 - printPreOrder\n");
+      printf("\t 9 - printPostOrder\n");
+      printf("\t 10- balanceTree\n");
+      printf("\t 0 - QUIT\n\n");
 
-        int opcao;
-        printf("option: ");
-        scanf("%d", &opcao);
-        getchar();
+      int opcao;
+      printf("\t Option: ");
+      scanf("%d", &opcao);
+      getchar();
 
-        if(opcao == 0)
-            break;
+      if(opcao == 0)
+          break;
 
-        if(opcao == 1){
-            system("clear");
+      if(opcao == 1){
+          system("clear");
 
-            char load_file[17], file[10];
-            int num_file;
-            printf("Lista de arquivos:\n\t1) bst1.txt\n\t2) bst2.txt\n\t3) bst3.txt\n\t4) bst4.txt\n\t5) bst5.txt\n\t6) bst6.txt\n\t7) bst7.txt\n\t8) bst8.txt");
+          char load_file[17], file[10];
+          int num_file;
+          printf("Lista de arquivos:\n\t\t1) bst1.txt\n\t\t2) bst2.txt\n\t\t3) bst3.txt\n\t\t4) bst4.txt\n\t\t5) bst5.txt\n\t\t6) bst6.txt\n\t\t7) bst7.txt\n\t\t8) bst8.txt");
 
-            printf("\n\nDigite o numero correspondente para carregar o arquivo: ");
-            
-            scanf("%d", &num_file);
-            getchar();
+          printf("\n\n\t\tDigite o numero correspondente para carregar o arquivo: ");
 
-            sprintf(load_file,"./BSTs/bst%d.txt",num_file);
+          scanf("%d", &num_file);
+          getchar();
 
-            raiz = loadTreeFromFile(load_file);
+          sprintf(load_file,"./BSTs/bst%d.txt",num_file);
 
-            sprintf(file, "bst%d.txt", num_file);
+          raiz = loadTreeFromFile(load_file);
+          Root = raiz;
 
-            printf("\nArquivo %s carregado...\n", file);
-            getchar();
-        }
-        if(opcao == 2){
-            if(!raiz)
-                printf("\nArvore vazia ou nao carregada!\n");
-            else {
-                system("clear");
-                printTree(raiz);
-            }
+          sprintf(file, "bst%d.txt", num_file);
 
-            getchar();
-        }
-        if(opcao == 3) {
-            if(!raiz)
-                printf("\nArvore vazia ou nao carregada!\n");
-            else
-                if(isFullTree(raiz))
-                    printf("\nArvore cheia!\n");
-                else
-                    printf("\nArvore nao cheia!\n");
-            getchar();
-        }
+          printf("\nArquivo %s carregado!\n", file);
+          getchar();
+      }
+      if(opcao == 2){
+          if(!raiz)
+              printf("\nArvore vazia ou nao carregada!\n");
+          else {
+              system("clear");
+              showTree(raiz);
+          }
 
+          getchar();
+      }
+      if(opcao == 3) {
+          if(!raiz)
+              printf("\nArvore vazia ou nao carregada!\n");
+          else
+              if(isFullTree(raiz))
+                  printf("\nArvore cheia!\n");
+              else
+                  printf("\nArvore nao cheia!\n");
+          getchar();
+      }
+      if(opcao == 4){
+          if(!raiz)
+              printf("\nArvore vazia ou nao carregada!\n");
+          else{
+              int search_value;
+              printf("\nDigite o valor de pesquisa: ");
+              scanf("%d", &search_value);
+              getchar();
+              if(searchValue(raiz, search_value)) {
+                  if(search_value == raiz->info)
+                      printf("\n  Nivel : %d (raiz da arvore)\n", getLevel(raiz, search_value, 1));
+                  else{
+                      int brother = getBrother(raiz, search_value, getLevel(raiz, search_value, 1) - 1);
+                      printf("\n  Nivel : %d\n", getLevel(raiz, search_value, 1));
+                      printf("  Pai  : %d\n", getParent(raiz, search_value, getLevel(raiz, search_value, 1) - 1));
+                      if(brother)
+                          printf("  Irmao : %d\n", brother);
+                      else
+                          printf("  Irmao : Nao possui!\n");
+                  }
+              }
+              else
+                  printf("\nValor nao encontrado na arvore!\n");
+          }
+          getchar();
+      }
+      if(opcao == 5) {
 
-        if(opcao == 4) {
+          if(!raiz)
+              printf("\nArvore vazia ou nao carregada!\n");
+          else
+              printf("\nAltura = %d\n", getHeight(raiz));
 
-            if(!raiz)
-                printf("\nArvore vazia ou nao carregada!\n");
+          getchar();
+      }
+      if(opcao == 6) {
+          if(!raiz)
+              printf("\nArvore vazia ou nao carregada!\n");
+          else {
+              int value;
+              printf("\nDigite o valor que deseja remover: ");
+              scanf("%d", &value);
+              getchar();
 
-            else {
-                int search_value;
-                printf("\nDigite o valor de pesquisa: ");
-                scanf("%d", &search_value);
-                getchar();
+              if(searchValue(raiz, value)) {
+                  removeValue(raiz, value);
+                  printf("\n%d removido!\n", value);
+              }
+              else
+                  printf("\nValor nao encontrado na arvore!\n");
+          }
+          getchar();
+      }
+      if(opcao == 7){
+          if(!raiz)
+              printf("\nArvore vazia ou nao carregada!\n");
+          else {
+              printf("\n");
+              printInOrder(raiz);
+          }
+          getchar();
+      }
+      if(opcao == 8){
 
-                if(searchValue(raiz, search_value)) {
-                    if(search_value == raiz->info)
-                        printf("\n  Nivel : %d (raiz da arvore)\n", getLevel(raiz, search_value, 1));
+          if(!raiz)
+              printf("\nArvore vazia ou nao carregada!\n");
+          else {
+              printf("\n");
+              printPreOrder(raiz);
+          }
+          getchar();
+      }
+      if(opcao == 9){
+          if(!raiz)
+              printf("\nArvore vazia ou nao carregada!\n");
+          else {
+              printf("\n");
+              printPosOrder(raiz);
+          }
+          getchar();
+      }
+      if(opcao == 10){
+          system("clear");
+          if(!raiz)
+              printf("\nArvore vazia ou nao carregada!\n");
+          else
+              if(isBalanced(raiz))
+                  printf("\nArvore Balanceada!\n");
+              else
+                  printf("\nArvore nao balaceada!\n");
 
-                    else {
-                        int brother = getBrother(raiz, search_value, getLevel(raiz, search_value, 1) - 1);
-                        printf("\n  Nivel : %d\n", getLevel(raiz, search_value, 1));
-                        printf("   Pai  : %d\n", getParent(raiz, search_value, getLevel(raiz, search_value, 1) - 1));
-                        if(brother)
-                            printf("  Irmao : %d\n", brother);
-                        else
-                            printf("  Irmao : Nao possui!\n");
+          getchar();
+      }
 
-                    }
-                }
-                else
-                    printf("\nValor nao encontrado na arvore!\n");
-            }
-            getchar();
-        }
+  }/*Fim-while*/
 
-        if(opcao == 5) {
+  liberaArv(Root);
 
-            if(!raiz)
-                printf("\nArvore vazia ou nao carregada!\n");
-            else
-                printf("\nAltura = %d\n", getHeight(raiz));
-
-            getchar();
-        }
-
-        if(opcao == 6) {
-            if(!raiz)
-                printf("\nArvore vazia ou nao carregada!\n");
-            else {
-                int value;
-                printf("\nDigite o valor que deseja remover: ");
-                scanf("%d", &value);
-                getchar();
-
-                if(searchValue(raiz, value)) {
-                    removeValue(raiz, value);
-                    printf("\n%d removido...\n", value);
-                }
-                else
-                    printf("\nValor nao encontrado na arvore!\n");
-            }
-            getchar();
-        }
-
-        if(opcao == 7) {
-            if(!raiz)
-                printf("\nArvore vazia ou nao carregada!\n");
-            else {
-                printf("\n");
-                printInOrder(raiz);
-            }
-            getchar();
-        }
-
-        if(opcao == 8) {
-
-            if(!raiz)
-                printf("\nArvore vazia ou nao carregada!\n");
-            else {
-                printf("\n");
-                printPreOrder(raiz);
-            }
-            getchar();
-        }
-
-        if(opcao == 9) {
-            if(!raiz)
-                printf("\nArvore vazia ou nao carregada!\n");
-            else {
-                printf("\n");
-                printPosOrder(raiz);
-            }
-            getchar();
-        }
-
-        if(opcao == 10) {
-            // system("clear");
-            if(!raiz)
-                printf("\nArvore vazia ou nao carregada!\n");
-            else
-                if(isBalanced(raiz))
-                    printf("\nArvore Balanceada!\n");
-                else
-                    printf("\nArvore nao balaceada!\n");
-
-            getchar();
-        }
-
-    }
-    return 0;
+  return 0;
 }/*Fim-main*/
 
 /*
@@ -235,10 +246,10 @@ Arv* loadTreeFromFile(const char *file_name) { //[1]
     arquivo = fopen(file_name, "r");
 
     if (!arquivo) {
-        printf("Falha ao carregar arquivo!\n");        
+        printf("Falha ao carregar arquivo!\n");
         exit(1);
     }
-    
+
     while((fscanf(arquivo, "%d", &num))!=EOF)
         arr = insert(arr, num);
 
@@ -247,12 +258,63 @@ Arv* loadTreeFromFile(const char *file_name) { //[1]
 }/*Fim-loadTreeFromFile*/
 
 void showTree(Arv *raiz) { //[2]
-    system("clear");
-    if(!raiz)
-        printf("Arvore nao carregada!!\n");
-    else
-        printf("Imprime arvore...\n");
-    getchar();
+  system("clear");
+  Root = raiz;
+  if(!raiz){
+      printf("Arvore nao carregada!!\n");
+  }else{
+    int i,j;
+    int a[44][120];
+    for(i=0;i<44;i++){
+      for(j=0;j<120;j++){
+        a[i][j]=0;
+      }
+    }
+
+    if(-1!=readTree(raiz,16,0,60,a)){
+      for(i=0;i<35;i++){
+        for(j=0;j<100;j++){
+          if(i==0||i==17||i==26||i==31||i==34||i==36){ //Linhas em que os números vão aparecer
+            if(a[i][j]==0)
+              printf(" ");
+            else
+              printf("%d",a[i][j]);
+          }else{
+            if((a[i][j]==0))
+              printf(" ");
+            else
+              printf("%c",a[i][j]);
+          }
+        }
+        printf("\n");
+      }
+    }else{
+       Node *nodeRaiz;
+
+       if (Root == NULL)
+           return;
+       nodeRaiz = criaNodeTree(Root);
+       preenche_galho(nodeRaiz);
+
+       for (int i = 0; i < nodeRaiz->altura && i < ALTURA_MAX; i++)
+           esq[i] = MAX_TAM;
+
+       menorEsq(nodeRaiz, 0, 0);
+       int xmin = 0;
+
+       for (int i = 0; i < nodeRaiz->altura && i < ALTURA_MAX; i++)
+           xmin = menor_node(xmin, esq[i]);
+       for (int i = 0; i < nodeRaiz->altura; i++) {
+           imprimeProx = 0;
+           imprimeLevel(nodeRaiz, -xmin, i);
+           printf("\n");
+       }
+
+       liberaNodeTree(nodeRaiz);
+    }
+  }
+
+  getchar();
 }/*Fim-showTree*/
 
 int isFullTree( Arv* root) { //[3]
@@ -287,14 +349,14 @@ int getHeight(Arv* node) { //[5]
         return 0;
 
     else  {
-        int lheight = getHeight(node->esq);
-        int rheight = getHeight(node->dir);
+        int laltura = getHeight(node->esq);
+        int raltura = getHeight(node->dir);
 
-        if (lheight > rheight) {
-            return(lheight+1);
+        if (laltura > raltura) {
+            return(laltura+1);
         }
         else
-            return(rheight+1);
+            return(raltura+1);
     }
 }/*Fim-getHeight*/
 
@@ -375,6 +437,13 @@ Arv* init () {
     return NULL;
 }/*Fim-init*/
 
+void liberaArv(Arv *no){
+    if (no == NULL) return;
+    liberaArv(no->esq);
+    liberaArv(no->dir);
+    free(no);
+}/*Fim-liberaArv*/
+
 Arv* insert(Arv* a, int v) {
     if (a==NULL) {
         a = (Arv*)malloc(sizeof(Arv));
@@ -388,27 +457,6 @@ Arv* insert(Arv* a, int v) {
 
     return a;
 }/*Fim-insert*/
-
-/*void printTree(Arv *root, int space) {
-    if (root == NULL)
-        return;
-
-    space += 10;
-
-    printTree(root->dir, space);
-
-    printf("\n");
-    for(int i = 10; i < space; i++)
-        printf(" ");
-    printf("%d\n", root->info);
-
-
-    printTree(root->esq, space);
-}*//*Fim-printTree*/
-
-/*void print(Arv *root) {
-   printTree(root, 10);
-}*//*Fim-print*/
 
 int getLevel(Arv *node, int info, int level) {
     if (node == NULL)
@@ -448,8 +496,6 @@ int getBrother(Arv *root, int value, int treeHeight) {
                 return root->dir->info;
             else
                 return 0;
-                // printf("This value doesn't have brother\n");
-
         }
         getBrother(root->esq, value, treeHeight);
     }
@@ -482,64 +528,200 @@ bool isBalanced(Arv *tree) {
    return false;
 }/*Fim-isBalanced*/
 
-int readTree(Arv *presentNode,int max,int row,int col,int a[176][480]){// reads the tree into the array
-  // a[44][120]; //a simulates the physical screen
-  int i=0;
-  int m=0,n=0; //flags for sending error signal
-  int r=row; //r changes to the next row
-  if(presentNode==NULL)// if the tree(not a subtree) doesn't have any elements at all
+int readTree(Arv *presentNode,int max,int row,int col,int a[44][120]){ //insere a árvore em uma matriz
+  int i = 0, m = 0, n = 0;
+  int r = row;
+
+  if(presentNode==NULL)
     return -1;
 
-  if(max==1&&(presentNode->esq!=NULL||presentNode->dir!=NULL))//max denotes the number of
-  //slashes to the next element. if it is zero and yet not a leaf then dont print the graphical tree
+  if(max==1&&(presentNode->esq!=NULL||presentNode->dir!=NULL))
     return -1;
-    a[row][col]=presentNode->info;//sets the value on the screen
-    if(presentNode->esq!=NULL){
-      while(i++<max)
-        a[++r][col-i]='/';
-      m= readTree(presentNode->esq,max/2,r+1,col-max-1,a);
-    }
 
-    i=0;
-    r=row;
-    if(presentNode->dir!=NULL){
-      while(i++<max)
-        a[++r][col+i]='\\';
-      n= readTree(presentNode->dir,max/2,r+1,col+max+1,a);
-    }
-    if(m==-1||n==-1)
-      return -1;
-    else
-      return 0;
+  a[row][col]=presentNode->info;
+
+  if(presentNode->esq!=NULL){
+    while(i++<max)
+      a[++r][col-i]='/';
+    m= readTree(presentNode->esq,max/2,r+1,col-max-1,a);
+  }
+
+  i = 0;
+  r = row;
+  if(presentNode->dir!=NULL){
+    while(i++<max)
+      a[++r][col+i]='\\';
+    n= readTree(presentNode->dir,max/2,r+1,col+max+1,a);
+  }
+  if(m == -1 || n == -1) //[m == -1 || n == -1]-> árvore não cabe nas dimensões da matriz a[44][120]
+    return -1;
+  else
+    return 0;
 }/*Fim-readTree*/
 
-int printTree(Arv *presentNode){
-    int i,j;
-    int a[176][480];
-    for(i=0;i<176;i++){
-      for(j=0;j<480;j++){
-        a[i][j]=0;
-      }
+int menor_node(int x, int y){
+    if(x < y)
+      return x;
+    else
+      return y;
+}/*Fim-menor_node*/
+
+int maior_node(int x, int y){
+    if(x > y)
+      return x;
+    else
+      return y;
+}/*Fim-maior_node*/
+
+Node *criaNodeTree(Arv *n){
+  Node *no;
+  if (n == NULL)
+      return NULL;
+
+  no = malloc(sizeof(Node));
+  no->esq = criaNodeTree(n->esq);
+  no->dir = criaNodeTree(n->dir);
+  no->tipo = 0;
+
+  if (no->esq != NULL)
+      no->esq->tipo = -1;
+  if (no->dir != NULL)
+      no->dir->tipo = 1;
+
+  sprintf(no->descricao, "%d", n->info);
+  no->info = strlen(no->descricao);
+
+  return no;
+}/*Fim-criaNodeTree*/
+
+void liberaNodeTree(Node *no){
+    if (no == NULL) return;
+    liberaNodeTree(no->esq);
+    liberaNodeTree(no->dir);
+    free(no);
+}/*Fim-liberaNodeTree*/
+
+void preenche_galho(Node *no){
+    int alturaMin, delta;
+
+    if (no == NULL)
+        return;
+
+    preenche_galho(no->esq);
+    preenche_galho(no->dir);
+
+    if (no->dir == NULL && no->esq == NULL)
+        no->galho = 0;
+
+    else {
+        if (no->esq != NULL) {
+            for (int i = 0; i < no->esq->altura && i < ALTURA_MAX; i++)
+                dir[i] = -MAX_TAM;
+
+            maiorDir(no->esq, 0, 0);
+            alturaMin = no->esq->altura;
+        }
+        else
+            alturaMin = 0;
+        if (no->dir != NULL) {
+            for (int i = 0; i < no->dir->altura && i < ALTURA_MAX; i++)
+                esq[i] = MAX_TAM;
+
+            menorEsq(no->dir, 0, 0);
+            alturaMin = menor_node(no->dir->altura, alturaMin);
+        }
+        else
+            alturaMin = 0;
+
+        delta = 4;
+        for (int i = 0; i < alturaMin; i++)
+            delta = maior_node(delta, espaco + 1 + dir[i] - esq[i]);
+
+        if (((no->esq != NULL && no->esq->altura == 1) ||
+                    (no->dir != NULL && no->dir->altura == 1)) && delta > 4) {
+            delta--;
+        }
+
+        no->galho = ((delta + 1) / 2) - 1;
     }
 
-    if(-1!=readTree(presentNode,16,0,60,a)){// -1 means it cannot print graphical form of tree
-      for(i=0;i<35;i++){
-        for(j=0;j<100;j++){//not 120 so that spaces dont shoot off onto the next line
-          if(i==0||i==17||i==26||i==31||i==34||i==36){
-          //if(i==0||i==17||i==26||i==31||i==34||i==36){//only on these lines integers exist (other lines have only slashes)
-            if(a[i][j]==0)
-              printf(" ");	//print spaces for uninitialized elements
-            else
-              printf("%d",a[i][j]);
-          }else{
-            if((a[i][j]==0))
-              printf(" ");
-            else
-              printf("%c",a[i][j]);
-          }
+    int altura = 1;
+    if (no->esq != NULL) {
+        altura = maior_node(no->esq->altura + no->galho + 1, altura);
+    }
+    if (no->dir != NULL) {
+        altura = maior_node(no->dir->altura + no->galho + 1, altura);
+    }
+    no->altura = altura;
+}/*Fim-preenche_galho*/
+
+void imprimeLevel(Node *no, int x, int level){
+    if (no == NULL) return;
+    int isesq = (no->tipo == -1);
+    if (level == 0) {
+        int i;
+        for (i = 0; i < (x - imprimeProx - ((no->info - isesq) / 2)); i++)
+            printf(" ");
+
+        imprimeProx += i;
+        printf("%s", no->descricao);
+        imprimeProx += no->info;
+    }
+    else if (no->galho >= level) {
+        if (no->esq != NULL) {
+            int i;
+            for (i = 0; i < (x - imprimeProx - (level)); i++)
+                printf(" ");
+
+            imprimeProx += i;
+            printf("/");
+            imprimeProx++;
         }
-        printf("\n");
-      }
-    }else
-    printf("Cannot print graphical form due to insufficient screen size\n");
-  }/*Fim-printTree*/
+        if (no->dir != NULL) {
+            int i;
+            for (i = 0; i < (x - imprimeProx + (level)); i++)
+                printf(" ");
+
+            imprimeProx += i;
+            printf("\\");
+            imprimeProx++;
+        }
+    }
+    else {
+        imprimeLevel(no->esq, x - no->galho - 1, level - no->galho - 1);
+        imprimeLevel(no->dir, x + no->galho + 1, level - no->galho - 1);
+    }
+}/*Fim-imprimeLevel*/
+
+void menorEsq(Node *no, int x, int y){
+    if (no == NULL)
+        return;
+
+    int isesq = (no->tipo == -1);
+    esq[y] = menor_node(esq[y], x - ((no->info - isesq) / 2));
+
+    if (no->esq != NULL) {
+        for(int i = 1; i <= no->galho  && y + i < ALTURA_MAX; i++) {
+            esq[y + i] = menor_node(esq[y + i], x - i);
+        }
+    }
+
+    menorEsq(no->esq, x - no->galho - 1, y + no->galho + 1);
+    menorEsq(no->dir, x + no->galho + 1, y + no->galho + 1);
+}/*Fim-menorEsq*/
+
+void maiorDir(Node *no, int x, int y){
+    if (no == NULL)
+        return;
+    int ttesq = (no->tipo != -1);
+    dir[y] = maior_node(dir[y], x + ((no->info - ttesq) / 2));
+
+    if (no->dir != NULL) {
+        for(int i = 1; i <= no->galho && y + i < ALTURA_MAX; i++) {
+            dir[y + i] = maior_node(dir[y + i], x + i);
+        }
+    }
+
+    maiorDir(no->esq, x - no->galho - 1, y + no->galho + 1);
+    maiorDir(no->dir, x + no->galho + 1, y + no->galho + 1);
+}/*Fim--maiorDir*/
