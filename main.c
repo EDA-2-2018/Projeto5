@@ -127,11 +127,11 @@ int main(){
 
                 if(searchValue(raiz, search_value)) {
                     if(search_value == raiz->info)
-                        printf("\n  Nivel : %d\n", getLevel(raiz, search_value, 1) - 1);
+                        printf("\n  Nivel : %d (raiz da arvore)\n", getLevel(raiz, search_value, 1));
 
                     else {
                         int brother = getBrother(raiz, search_value, getLevel(raiz, search_value, 1) - 1);
-                        printf("\n  Nivel : %d\n", getLevel(raiz, search_value, 1) - 1);
+                        printf("\n  Nivel : %d\n", getLevel(raiz, search_value, 1));
                         printf("   Pai  : %d\n", getParent(raiz, search_value, getLevel(raiz, search_value, 1) - 1));
                         if(brother)
                             printf("  Irmao : %d\n", brother);
@@ -523,7 +523,7 @@ int printTree(Arv *presentNode){
     }
 
     if(-1!=readTree(presentNode,16,0,60,a)){// -1 means it cannot print graphical form of tree
-      for(i=0;i<37;i++){
+      for(i=0;i<35;i++){
         for(j=0;j<100;j++){//not 120 so that spaces dont shoot off onto the next line
           if(i==0||i==17||i==26||i==31||i==34||i==36){
           //if(i==0||i==17||i==26||i==31||i==34||i==36){//only on these lines integers exist (other lines have only slashes)
